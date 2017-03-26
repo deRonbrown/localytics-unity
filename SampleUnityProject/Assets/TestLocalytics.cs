@@ -73,10 +73,12 @@ public class TestLocalytics : MonoBehaviour
 		Localytics.OnLocalyticsDidDisplayInAppMessage += Localytics_OnLocalyticsDidDisplayInAppMessage;
 		Localytics.OnLocalyticsWillDismissInAppMessage += Localytics_OnLocalyticsWillDismissInAppMessage;
 		Localytics.OnLocalyticsWillDisplayInAppMessage += Localytics_OnLocalyticsWillDisplayInAppMessage;
+#if UNITY_ANDROID
 		Localytics.OnLocalyticsShouldShowPushNotification += Localytics_OnLocalyticsShouldShowPushNotification;
 		Localytics.OnLocalyticsShouldShowPlacesPushNotification += Localytics_OnLocalyticsShouldShowPlacesPushNotification;
 		Localytics.OnLocalyticsWillShowPushNotification += Localytics_OnLocalyticsWillShowPushNotification;
 		Localytics.OnLocalyticsWillShowPlacesPushNotification += Localytics_OnLocalyticsWillShowPlacesPushNotification;
+#endif
 
 		// Location events
 		Localytics.OnLocalyticsDidUpdateLocation += Localytics_OnLocalyticsDidUpdateLocation;
@@ -93,22 +95,50 @@ public class TestLocalytics : MonoBehaviour
 		});
         _tagEventClick.onClick.AddListener(() => {
 			Dictionary<string, string> attributes = new Dictionary<string, string>();
-			attributes.Add("attr", "value");
+			attributes.Add("key_one", "val_one");
 			Localytics.TagEvent("test", attributes);
+			CustomerInfo customer = new CustomerInfo();
+			customer.CustomerId = "hero";
+			customer.FirstName = "hero";
+			customer.LastName = "hero";
+			customer.FullName = "hero";
+			customer.EmailAddress = "hero";
+			Localytics.TagPurchased("itemName", "itemId", "itemType", 15, attributes);
+			Localytics.TagAddedToCart("itemName", "itemId", "itemType", 15, attributes);
+//			Localytics.TagStartedCheckout(15, 20, attributes);
+//			Localytics.TagCompletedCheckout(15, 20, attributes);
+			Localytics.TagContentViewed("contentName", "contentId", "contentType", attributes);
+			Localytics.TagSearched("queryText", "contentType", 15, attributes);
+			Localytics.TagShared("contentName", "contentId", "contentType", "methodName", attributes);
+			Localytics.TagContentRated("contentName", "contentId", "contentType", 5, attributes);
+			Localytics.TagCustomerRegistered(customer, "methodName", attributes);
+			Localytics.TagCustomerLoggedIn(customer, "methodName", attributes);
+			Localytics.TagCustomerLoggedOut(attributes);
+			Localytics.TagInvited("methodName", attributes);
 			Localytics.Upload();
 
 		});
         _tagScreen1.onClick.AddListener(() => {
-			Localytics.TagScreen("screen1");
-			Localytics.Upload();
+//			Localytics.TagScreen("screen1");
+//			Localytics.Upload();
+			List<CircularRegionInfo> geofences = Localytics.GetGeofencesToMonitor(42.34952, -71.05017);
+			foreach (CircularRegionInfo info in geofences) {
+				printCircularRegion(info);
+			}
 		});
 
         _tagScreen2.onClick.AddListener(() => {
-			Localytics.TagScreen("screen2");
-			Localytics.Upload();
+//			Localytics.TagScreen("screen2");
+//			Localytics.Upload();
+			Localytics.LocationMonitoringEnabled = true;
+//			List<CircularRegionInfo> toTrigger = new List<CircularRegionInfo>();
+//			CircularRegionInfo chalet = new CircularRegionInfo();
+//			chalet.UniqueId = "chalet";
+//			toTrigger.Add(chalet);
+//			Localytics.TriggerRegions(toTrigger, Localytics.RegionEvent.Enter);
 		});
 
-        Localytics.CustomerId = "user1";
+//        Localytics.CustomerId = "user1";
 
 		Localytics.SetIdentifier("test_identifier", "test setIdentifier");
 		Localytics.GetIdentifier("test_identifier");
@@ -165,7 +195,7 @@ public class TestLocalytics : MonoBehaviour
 
 #if UNITY_IOS
 		_inAppIdAdEnabled.text = "InAppAdIdParameter Enabled: " + Localytics.InAppAdIdParameterEnabled;
-		_pushDisabled.text = "IsCollectingAdvertisingIdentifier: " + Localytics.IsCollectingAdvertisingIdentifier;
+		//_pushDisabled.text = "IsCollectingAdvertisingIdentifier: " + Localytics.IsCollectingAdvertisingIdentifier;
         _pushRegistrationId.text = "Push Token: " + Localytics.PushToken;
 #elif UNITY_ANDROID
 		_inAppIdAdEnabled.text = "InAppAdIdParameter Enabled: -";
@@ -253,8 +283,10 @@ public class TestLocalytics : MonoBehaviour
 		Debug.Log ("lat=" + latitude + " lng=" + longitude);
 	}
 #else
-	void Localytics_OnLocalyticsDidUpdateLocation(LocationInfo location)
+	void Localytics_OnLocalyticsDidUpdateLocation(Dictionary<string, object> locationDict)
 	{
+		Debug.Log ("DidUpdateLocation");
+		Debug.Log ("lat=" + locationDict["latitude"] + " lng=" + locationDict["longitude"]);
 	}
 #endif
 
